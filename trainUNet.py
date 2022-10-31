@@ -38,16 +38,22 @@ SHUFFLE_DATASET = True
 Dataset loading
 
 Strain and label directories are only used but the stress-fields are also available.
-Default root directory is './Dataset/'
+Default root directory is './dataset/'
 Use images in /crop/ for stress and strain.
 """
-dataType = 'normalRes2'
+# 'elastoplastic' or 'hyperelastic'
+materialType = 'elastoplastic'
+# 'tension' or 'compression'
+loadingCondition = 'tension'
+# 'equivalent', 'maxPrincipal' or 'minPrincipal'
 resultType = 'equivalent'
-setType = ''
+# leave blank when training. Use 'artif' or 'test' when loading a model to see sample predictions
+setType = '' 
 
-STRAIN_DIR = 'Dataset/strain/' + dataType + '/' + resultType + '/' + setType + '/crop/*.png'
-STRESS_DIR = 'Dataset/stress/' + dataType + '/' + resultType + '/' + setType + '/crop/*.png'
-LABEL_DIR = 'Dataset/structure/' + dataType +  '/' + setType + '/image/*.png'
+# define directories. default root is './dataset/'
+STRAIN_DIR = 'dataset/strain/' + loadingCondition + '/' + materialType + '/' + resultType + '/' + setType + '/crop/*.png'
+STRESS_DIR = 'dataset/stress/' + loadingCondition + '/' + materialType + '/' + resultType + '/' + setType + '/crop/*.png'
+LABEL_DIR = 'dataset/structure/' + loadingCondition + '/' + materialType + '/' + setType + '/image/*.png'
 
 # function to save the model. Saved into './savedModels/'.
 def saveModel(state, filename):
