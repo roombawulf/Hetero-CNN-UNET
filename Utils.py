@@ -1,37 +1,52 @@
-from cProfile import label
-from turtle import left
-from cv2 import sqrt
-from matplotlib.ft2font import LOAD_VERTICAL_LAYOUT
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from getDataset import strainFieldDataset
 from torch.utils.data import DataLoader
-from torch.utils.data.sampler import SubsetRandomSampler
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-def getLoaders(strainDir, stressDir, labelDir, batchSize, valSplit, shuffle, pin_memory=True):
+"""
+DataLoader class handling dataset object from custom class in getDataset.py
+
+The dataset is shuffled (if enabled) and then appropriately split 
+into training and test sets where the split is defined by the user from
+the gloval variable TRAIN_TEST_SPLIT (in trainUNet.py).
+"""
+def getLoaders(strainDir, stressDir, labelDir, batchSize, setSplit, shuffle, pin_memory=True):
     
+    # get dataset from custom class in getDataset.py
     dataset = strainFieldDataset(strainDir, stressDir, labelDir)
 
+    # random seed is used for controllable randomness
     random_seed= 42
 
+    # split dataset
     datasetSize = len(dataset)
     indices = list(range(datasetSize))
-    split = int(np.floor(valSplit * datasetSize))
+    split = int(np.floor(setSplit * datasetSize))
+
+    # shuffle dataset
     if shuffle == True:
         np.random.seed(random_seed)
         np.random.shuffle(indices)
     train_indices, val_indices = indices[split:], indices[:split]
 
-    #train_sampler = SubsetRandomSampler(train_indices)
-    #valid_sampler = SubsetRandomSampler(val_indices)
-
+    # create train and test set and then return them
     train = DataLoader(dataset=dataset, batch_size=batchSize, sampler=train_indices)
     test = DataLoader(dataset=dataset, batch_size=batchSize, sampler=val_indices)
 
     return train, test
 
+"""
+Check accuracy and plot
+
+USERNOTE: This function is very messy/inefficient but does work 
+(will attempt to update some time). Probably split accuracy and plots
+into two seperate functions. The plots also have the tendency to break 
+when the batchsize is set too small (< 4)... need to fix. 
+
+After training, this function checks the accuracy of the model on the test set and 
+then plots the last 3 predictions, ground truth and residual error via matplotlib.pyplot.
+"""
 def checkAccuracy(loader, model, device, epoch):
     numCorrect = 0
     numPixels = 0
